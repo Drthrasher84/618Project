@@ -1,12 +1,29 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Blog } from './Blog.jsx'
+import { useState } from 'react'
+import { setToken } from './api/client.js'
+import { AuthBar } from './components/AuthBar.jsx'
+import { CreateRecipe } from './components/CreateRecipe.jsx'
+import { RecipePage } from './RecipePage.jsx'
+import { useQueryClient } from '@tanstack/react-query'
 
-const queryClient = new QueryClient()
+export default function App() {
+  const [user, setUser] = useState(null)
+  const qc = useQueryClient()
 
-export function App() {
+  const onLogout = () => {
+    setToken(null)
+    setUser(null)
+    qc.invalidateQueries({ queryKey: ['recipes'] })
+  }
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <Blog />
-    </QueryClientProvider>
+    <div className='container'>
+      <h1>Real-Time Recipe Sharing (M1)</h1>
+      <AuthBar user={user} onAuth={setUser} onLogout={onLogout} />
+      <CreateRecipe
+        disabled={!user}
+        onCreated={() => qc.invalidateQueries({ queryKey: ['recipes'] })}
+      />
+      <RecipePage />
+    </div>
   )
 }

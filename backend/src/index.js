@@ -1,14 +1,24 @@
+import express from 'express'
+import cors from 'cors'
 import dotenv from 'dotenv'
+import { connectToDatabase } from './db/init.js'
+import authRoutes from './routes/auth.js'
+import recipeRoutes from './routes/recipes.js'
+
 dotenv.config()
+await connectToDatabase() // your existing connector with mongoose.connect(DATABASE_URL)
 
-import { app } from './app.js'
-import { initDatabase } from './db/init.js'
+const app = express()
+app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }))
+app.use(express.json())
+app.get('/', (_req, res) => {
+  res.send('API is running. Try /api/v1/recipes')
+})
 
-try {
-  await initDatabase()
-  const PORT = process.env.PORT
-  app.listen(PORT)
-  console.info(`express server running on http://localhost:${PORT}`)
-} catch (err) {
-  console.error('error connecting to database:', err)
-}
+app.use('/api/v1/auth', authRoutes)
+app.use('/api/v1/recipes', recipeRoutes)
+
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () =>
+  console.log(`Backend listening on http://localhost:${PORT}`),
+)

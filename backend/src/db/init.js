@@ -1,10 +1,7 @@
 import mongoose from 'mongoose'
-
-export function initDatabase() {
-  const DATABASE_URL = process.env.DATABASE_URL
-  mongoose.connection.on('open', () => {
-    console.info('successfully connected to database:', DATABASE_URL)
-  })
-  const connection = mongoose.connect(DATABASE_URL)
-  return connection
+const url = process.env.DATABASE_URL || 'mongodb://localhost:27017/recipes'
+export async function connectToDatabase() {
+  if (mongoose.connection.readyState === 1) return
+  await mongoose.connect(url)
+  console.log('✅ MongoDB connected')
 }
