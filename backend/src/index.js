@@ -6,7 +6,7 @@ import authRoutes from './routes/auth.js'
 import recipeRoutes from './routes/recipes.js'
 
 dotenv.config()
-await connectToDatabase() // your existing connector with mongoose.connect(DATABASE_URL)
+await connectToDatabase()
 
 const app = express()
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }))

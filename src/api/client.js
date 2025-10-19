@@ -23,14 +23,14 @@ async function http(path, { method = 'GET', body, headers } = {}) {
 }
 
 export const api = {
-  // Auth (matches backend: /api/v1/auth/signup, /api/v1/auth/login)
   signup: (username, password) =>
     http('/auth/signup', { method: 'POST', body: { username, password } }),
   login: (username, password) =>
     http('/auth/login', { method: 'POST', body: { username, password } }),
 
-  // Recipes (matches backend: GET/POST /api/v1/recipes)
-  listRecipes: () => http('/recipes'),
+  listRecipes: ({ author } = {}) =>
+    http(`/recipes${author ? `?author=${encodeURIComponent(author)}` : ''}`),
+
   createRecipe: ({ title, ingredients, imageUrl }) =>
     http('/recipes', {
       method: 'POST',
