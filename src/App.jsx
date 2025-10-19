@@ -1,3 +1,4 @@
+import { Header } from './components/Header.jsx'
 import { useState } from 'react'
 import { setToken } from './api/client.js'
 import { AuthBar } from './components/AuthBar.jsx'
@@ -17,7 +18,7 @@ export default function App() {
 
   return (
     <div className='container'>
-      <h1>Real-Time Recipe Sharing (M1)</h1>
+      <Header user={user} onLogout={onLogout} /> {/* 👈 Add here */}
       <AuthBar user={user} onAuth={setUser} onLogout={onLogout} />
       <CreateRecipe
         disabled={!user}

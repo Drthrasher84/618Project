@@ -11,14 +11,20 @@ router.post('/', requireAuth, async (req, res) => {
     title: title.trim(),
     ingredients: ingredients.map((s) => String(s).trim()).filter(Boolean),
     imageUrl: imageUrl?.trim() || undefined,
-    authorId: req.user.sub,
+    authorId: req.userID,
   })
   res.json(doc)
 })
 
-router.get('/', async (_req, res) => {
-  const docs = await Recipe.find({}).sort({ createdAt: -1 }).lean()
-  res.json(docs)
+router.get('/', async (req, res) => {
+  try {
+    const recipes = await Recipe.find()
+      .populate('authorId', 'username')
+      .sort({ createdAt: -1 })
+    res.json(recipes)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
 })
 
 export default router

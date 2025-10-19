@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { api } from '../api/client.js'
 
-export function CreateRecipe({ onCreated, disabled }) {
+export function CreateRecipe({ onCreated, disabled = false }) {
   const [title, setTitle] = useState('')
   const [ingredientsText, setIngredientsText] = useState('')
   const [imageUrl, setImageUrl] = useState('')
@@ -72,8 +72,8 @@ export function CreateRecipe({ onCreated, disabled }) {
 }
 
 CreateRecipe.propTypes = {
-  onCreated: PropTypes.func, // called after successful create
-  disabled: PropTypes.bool, // disables the submit button/form
+  onCreated: PropTypes.func,
+  disabled: PropTypes.bool,
 }
 
 CreateRecipe.defaultProps = {

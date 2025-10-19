@@ -20,6 +20,7 @@ export function RecipePage() {
               <div className='post-header'>
                 <h3>{r.title}</h3>
                 <span className='meta'>
+                  Posted by {r.authorId?.username || 'Unknown'} on{' '}
                   {new Date(r.createdAt).toLocaleString()}
                 </span>
               </div>

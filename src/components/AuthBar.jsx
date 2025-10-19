@@ -1,45 +1,45 @@
-import PropTypes from 'prop-types'
 import { useState } from 'react'
 import { api, setToken } from '../api/client.js'
+import PropTypes from 'prop-types'
 
-export function AuthBar({ onAuth, onLogout, user }) {
+export function AuthBar({ user, onAuth, onLogout }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const [isSignup, setIsSignup] = useState(false)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      if (isSignup) {
+        // 1️⃣ Create account
+        await api.signup(username, password)
+        // 2️⃣ Immediately log in
+        const res = await api.login(username, password)
+        setToken(res.token)
+        onAuth({ username })
+      } else {
+        // Normal login
+        const res = await api.login(username, password)
+        setToken(res.token)
+        onAuth({ username })
+      }
+    } catch (err) {
+      alert(err.message)
+    }
+  }
 
   if (user) {
     return (
-      <div
-        className='card'
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <div>
-          Logged in as <strong>{user.username}</strong>
-        </div>
-        <button onClick={onLogout}>Log Out</button>
+      <div className='card'>
+        <h2>Welcome, {user.username}</h2>
+        <button onClick={onLogout}>Logout</button>
       </div>
     )
   }
 
-  const submit = async (mode) => {
-    try {
-      setError('')
-      if (mode === 'signup') await api.signup(username, password)
-      const { token } = await api.login(username, password)
-      setToken(token)
-      onAuth?.({ username, token })
-    } catch (e) {
-      setError(e.message)
-    }
-  }
-
   return (
-    <div className='card'>
-      <h2>Auth</h2>
+    <form className='card' onSubmit={handleSubmit}>
+      <h2>{isSignup ? 'Sign Up' : 'Login'}</h2>
       <label>
         Username
         <input value={username} onChange={(e) => setUsername(e.target.value)} />
@@ -52,25 +52,19 @@ export function AuthBar({ onAuth, onLogout, user }) {
           onChange={(e) => setPassword(e.target.value)}
         />
       </label>
-      {error && <p className='error'>{error.message || error}</p>}
-      <div style={{ display: 'flex', gap: 8 }}>
-        <button onClick={() => submit('signup')}>Sign Up</button>
-        <button onClick={() => submit('login')}>Log In</button>
-      </div>
-    </div>
+      <button type='submit'>{isSignup ? 'Create Account' : 'Login'}</button>
+      <p style={{ marginTop: '0.5rem' }}>
+        {isSignup ? 'Already have an account?' : 'Need an account?'}{' '}
+        <button type='button' onClick={() => setIsSignup(!isSignup)}>
+          {isSignup ? 'Login' : 'Sign Up'}
+        </button>
+      </p>
+    </form>
   )
 }
 
 AuthBar.propTypes = {
+  user: PropTypes.shape({ username: PropTypes.string }),
   onAuth: PropTypes.func,
   onLogout: PropTypes.func,
-  user: PropTypes.shape({
-    username: PropTypes.string.isRequired,
-  }),
-}
-
-AuthBar.defaultProps = {
-  onAuth: undefined,
-  onLogout: undefined,
-  user: null,
 }
