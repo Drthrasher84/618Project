@@ -13,10 +13,18 @@ export function AuthBar({ user, onAuth, onLogout }) {
       if (isSignup) {
         // 1️⃣ Create account
         await api.signup(username, password)
+
+        // ✅ Clear fields after signup
+        setUsername('')
+        setPassword('')
+
         // 2️⃣ Immediately log in
         const res = await api.login(username, password)
         setToken(res.token)
         onAuth({ username })
+
+        // Optional: focus username field after successful login
+        document.getElementById('username-input')?.focus()
       } else {
         // Normal login
         const res = await api.login(username, password)
@@ -40,10 +48,16 @@ export function AuthBar({ user, onAuth, onLogout }) {
   return (
     <form className='card' onSubmit={handleSubmit}>
       <h2>{isSignup ? 'Sign Up' : 'Login'}</h2>
+
       <label>
         Username
-        <input value={username} onChange={(e) => setUsername(e.target.value)} />
+        <input
+          id='username-input'
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
       </label>
+
       <label>
         Password
         <input
@@ -52,10 +66,20 @@ export function AuthBar({ user, onAuth, onLogout }) {
           onChange={(e) => setPassword(e.target.value)}
         />
       </label>
+
       <button type='submit'>{isSignup ? 'Create Account' : 'Login'}</button>
+
       <p style={{ marginTop: '0.5rem' }}>
         {isSignup ? 'Already have an account?' : 'Need an account?'}{' '}
-        <button type='button' onClick={() => setIsSignup(!isSignup)}>
+        <button
+          type='button'
+          onClick={() => {
+            setIsSignup(!isSignup)
+            setUsername('')
+            setPassword('')
+            document.getElementById('username-input')?.focus()
+          }}
+        >
           {isSignup ? 'Login' : 'Sign Up'}
         </button>
       </p>
