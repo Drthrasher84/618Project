@@ -1,39 +1,86 @@
-const BASE = (import.meta.env.VITE_BACKEND_URL || '/api/v1').replace(/\/$/, '')
-let token = null
+// frontend/src/api/client.js
 
-export function setToken(t) {
-  token = t
+const API_BASE =
+  import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api/v1'
+
+export function setToken(token) {
+  if (typeof window === 'undefined') return
+  if (token) {
+    window.localStorage.setItem('token', token)
+  } else {
+    window.localStorage.removeItem('token')
+  }
 }
 
-async function http(path, { method = 'GET', body, headers } = {}) {
-  const res = await fetch(`${BASE}${path}`, {
+function getToken() {
+  if (typeof window === 'undefined') return null
+  return window.localStorage.getItem('token')
+}
+
+async function request(method, path, { body, auth = false } = {}) {
+  const headers = { 'Content-Type': 'application/json' }
+
+  if (auth) {
+    const token = getToken()
+    if (token) headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const res = await fetch(`${API_BASE}${path}`, {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...headers,
-    },
+    headers,
     body: body ? JSON.stringify(body) : undefined,
   })
+
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err.error || `HTTP ${res.status}`)
+    const text = await res.text()
+    throw new Error(text || `Request failed with status ${res.status}`)
   }
+
   return res.json()
 }
 
 export const api = {
-  signup: (username, password) =>
-    http('/auth/signup', { method: 'POST', body: { username, password } }),
-  login: (username, password) =>
-    http('/auth/login', { method: 'POST', body: { username, password } }),
+  signup({ username, password }) {
+    return request('POST', '/auth/signup', {
+      body: { username, password },
+    })
+  },
 
-  listRecipes: ({ author } = {}) =>
-    http(`/recipes${author ? `?author=${encodeURIComponent(author)}` : ''}`),
+  login({ username, password }) {
+    return request('POST', '/auth/login', {
+      body: { username, password },
+    })
+  },
 
-  createRecipe: ({ title, ingredients, imageUrl }) =>
-    http('/recipes', {
-      method: 'POST',
-      body: { title, ingredients, imageUrl },
-    }),
+  createRecipe({ title, ingredients, imageUrl, steps }) {
+    return request('POST', '/recipes', {
+      body: { title, ingredients, imageUrl, steps },
+      auth: true,
+    })
+  },
+
+  listRecipes({ author, sort } = {}) {
+    const params = new URLSearchParams()
+    if (author) params.set('author', author)
+    if (sort) params.set('sort', sort)
+
+    const qs = params.toString()
+    return request('GET', `/recipes${qs ? `?${qs}` : ''}`)
+  },
+
+  getRecipe(id) {
+    return request('GET', `/recipes/${id}`)
+  },
+
+  likeRecipe(id) {
+    return request('POST', `/recipes/${id}/like`, { auth: true })
+  },
+
+  unlikeRecipe(id) {
+    return request('POST', `/recipes/${id}/unlike`, { auth: true })
+  },
+
+  getTopRecipes(limit = 5) {
+    return request('GET', `/recipes/top?limit=${limit}`)
+  },
 }

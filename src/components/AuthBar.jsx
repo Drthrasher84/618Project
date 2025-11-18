@@ -12,22 +12,21 @@ export function AuthBar({ user, onAuth, onLogout }) {
     try {
       if (isSignup) {
         // 1️⃣ Create account
-        await api.signup(username, password)
+        await api.signup({ username, password })
 
-        // ✅ Clear fields after signup
+        // Clear fields
         setUsername('')
         setPassword('')
 
         // 2️⃣ Immediately log in
-        const res = await api.login(username, password)
+        const res = await api.login({ username, password })
         setToken(res.token)
         onAuth({ username })
 
-        // Optional: focus username field after successful login
         document.getElementById('username-input')?.focus()
       } else {
         // Normal login
-        const res = await api.login(username, password)
+        const res = await api.login({ username, password })
         setToken(res.token)
         onAuth({ username })
       }

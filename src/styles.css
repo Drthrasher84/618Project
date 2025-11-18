@@ -111,3 +111,47 @@ button[disabled] {
   outline-offset: 2px;
 }
 .meta { color: #555; }
+
+.layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+/* left side (login, create, list) */
+.main-column {
+  flex: 1 1 auto;
+}
+
+/* right side (top recipes panel) */
+.sidebar-column {
+  width: 260px;           /* adjust to taste */
+}
+
+/* style the top-recipes card a bit */
+.top-recipes {
+  position: sticky;       /* stays visible when scrolling */
+  top: 1rem;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.top-recipes-list {
+  list-style: decimal;
+  padding-left: 1.25rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+}
+
+.top-recipes-list li {
+  margin-bottom: 0.35rem;
+}
+
+.top-recipes-title {
+  font-weight: 600;
+}
+
+.top-recipes-meta {
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
