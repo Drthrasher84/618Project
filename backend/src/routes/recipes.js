@@ -22,9 +22,20 @@ router.post('/', requireAuth, async (req, res) => {
       ingredients: ingredients.map((s) => String(s).trim()).filter(Boolean),
       steps: steps ?? '',
       imageUrl: imageUrl?.trim() || undefined,
-      author: req.user.sub, // use `author` field (Option A)
+      author: req.user.sub, // your existing author field
       likes: [],
     })
+
+    // 🔥 BROADCAST SOCKET EVENT HERE
+    const io = req.app.get('io')
+    if (io) {
+      io.emit('recipe:created', {
+        id: doc._id.toString(),
+        title: doc.title,
+        author: req.user.username ?? req.user.email ?? 'Unknown',
+        createdAt: doc.createdAt,
+      })
+    }
 
     res.status(201).json(doc)
   } catch (err) {

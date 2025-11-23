@@ -1,24 +1,50 @@
+// backend/src/index.js
+import http from 'http'
 import express from 'express'
+import { Server as SocketIOServer } from 'socket.io'
 import cors from 'cors'
 import dotenv from 'dotenv'
-import { connectToDatabase } from './db/init.js'
-import authRoutes from './routes/auth.js'
-import recipeRoutes from './routes/recipes.js'
+import { connectDb } from './db/connect.js'
+import recipesRouter from './routes/recipes.js'
+import authRouter from './routes/auth.js'
 
 dotenv.config()
-await connectToDatabase()
 
 const app = express()
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }))
+app.use(cors())
 app.use(express.json())
-app.get('/', (_req, res) => {
-  res.send('API is running. Try /api/v1/recipes')
+
+app.use('/api/v1/auth', authRouter)
+app.use('/api/v1/recipes', recipesRouter)
+
+const server = http.createServer(app)
+
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  },
 })
 
-app.use('/api/v1/auth', authRoutes)
-app.use('/api/v1/recipes', recipeRoutes)
+app.set('io', io)
 
-const PORT = process.env.PORT || 3001
-app.listen(PORT, () =>
-  console.log(`Backend listening on http://localhost:${PORT}`),
-)
+io.on('connection', (socket) => {
+  console.log('New client connected:', socket.id)
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id)
+  })
+})
+
+const PORT = process.env.PORT || 3000
+
+connectDb()
+  .then(() => {
+    server.listen(PORT, () => {
+      console.log(`Server listening on http://localhost:${PORT}`)
+    })
+  })
+  .catch((err) => {
+    console.error('Failed to connect DB:', err)
+    process.exit(1)
+  })
